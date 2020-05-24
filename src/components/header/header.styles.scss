@@ -1,0 +1,12 @@
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+
+  .option {
+    margin: 15px;
+    padding: 10px 15px;
+    cursor: pointer;
+  }
+}
+  
