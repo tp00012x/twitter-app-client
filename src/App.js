@@ -19,7 +19,7 @@ export default class App extends React.Component {
 
     state = {
         currentUser: null,
-        homeStatuses: null,
+        homeTimelines: null,
         loading: true
     }
 
@@ -49,8 +49,8 @@ export default class App extends React.Component {
         this.unsubscribeFromAuth();
     }
 
-    getHomeStatuses = async (user) => {
-        const response = await fetch(`${baseURl}/home`, {
+    saveHomeTimelines = async (user) => {
+        const response = await fetch(`${baseURl}/api/home_timeline`, {
             method: 'POST',
             mode: 'cors',
             cache: 'no-cache',
@@ -72,9 +72,8 @@ export default class App extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         const {currentUser} = this.state;
         if (prevState.currentUser !== currentUser && currentUser !== null) {
-            console.log('get home statuses')
-            this.getHomeStatuses(currentUser).then((homeStatuses) => {
-                this.setState({homeStatuses})
+            this.saveHomeTimelines(currentUser).then((homeTimelines) => {
+                this.setState({homeTimelines})
             })
         }
         if (prevState.currentUser !== currentUser && currentUser === null) {
@@ -83,17 +82,16 @@ export default class App extends React.Component {
     }
 
     render() {
-        const {currentUser, homeStatuses, loading} = this.state;
-        console.log(homeStatuses);
+        const {currentUser, homeTimelines, loading} = this.state;
+        console.log(homeTimelines);
 
         return (
             <div>
-
                 {
                     currentUser ? (
                         <Fragment>
                             <Header currentUser={currentUser}/>
-                            <Home homeStatuses={homeStatuses}/>
+                            <Home homeStatuses={homeTimelines}/>
                         </Fragment>
 
                     ) : (
