@@ -2,7 +2,7 @@ import {parseDomain, fromUrl} from "parse-domain";
 
 const baseURl = 'http://localhost:3001'
 
-export default class HomeTimelinesUtils {
+export class APIUtils {
     constructor(homeTimelines) {
         this.homeTimelines = homeTimelines
     }
@@ -32,6 +32,12 @@ export default class HomeTimelinesUtils {
         });
         return response.json();
     };
+}
+
+export class SidebarUtils {
+    constructor(homeTimelines) {
+        this.homeTimelines = homeTimelines
+    }
 
     getUserWithMostLinks() {
         const counter = {}
@@ -61,7 +67,7 @@ export default class HomeTimelinesUtils {
     }
 
     _sortDomains(domains) {
-        return Object.keys(domains).sort(function (a, b) {
+        return Object.keys(domains).sort((a, b) => {
             return domains[b] - domains[a]
         })
     }
@@ -75,5 +81,24 @@ export default class HomeTimelinesUtils {
             }
         }
         return allUrls;
+    }
+}
+
+export class HashTagUtils {
+    constructor(homeTimelines, hashTagSearch) {
+        this.homeTimelines = homeTimelines
+        this.hashTagSearch = hashTagSearch
+    }
+
+    getFilteredHomeTimeLines() {
+        return this.homeTimelines.filter((homeTimeline) => {
+            if (this.hashTagSearch !== '') {
+                for (let hashtag of homeTimeline.entities.hashtags) {
+                    return hashtag.text.toLowerCase().includes(this.hashTagSearch)
+                }
+            } else {
+                return true;
+            }
+        })
     }
 }

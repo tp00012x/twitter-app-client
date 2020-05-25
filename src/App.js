@@ -2,13 +2,14 @@ import React, {Fragment, useEffect, useState} from "react";
 import "./App.scss";
 import Particles from 'react-particles-js';
 import {Col, Container, Row} from 'react-bootstrap';
-import HomeTimelinesUtils from "./utils";
+import {MDBIcon} from 'mdbreact';
 import SignIn from "./components/sign-in/sign-in.component";
 import Home from "./components/home/home.component"
 import Header from "./components/header/header.component";
 import Search from './components/search/search.component';
 import DomainList from "./components/list/list.component";
 import CardWrapper from "./components/card/card.component";
+import {APIUtils, HashTagUtils, SidebarUtils} from "./utils";
 import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 
 const particlesOptions = {
@@ -28,6 +29,8 @@ const App = () => {
     const [userWithMostLinks, setUserWithMostLinks] = useState(null);
     const [topDomains, setTopDomains] = useState([]);
     const [homeTimelines, setHomeTimelines] = useState(JSON.parse(localStorage.getItem('homeTimelines')));
+    const [hashTagSearch, setHashTagSearch] = useState('');
+    const hashTagUtils = new HashTagUtils(homeTimelines, hashTagSearch);
 
     useEffect(() => {
         const unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
@@ -54,9 +57,9 @@ const App = () => {
 
     useEffect(() => {
         if (currentUser !== null) {
-            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines);
-            if (homeTimelinesUtils.shouldGetHomeTimelines()) {
-                homeTimelinesUtils.fetchHomeTimelines(currentUser).then((homeTimelines) => {
+            const apiUtils = new APIUtils(homeTimelines);
+            if (apiUtils.shouldGetHomeTimelines()) {
+                apiUtils.fetchHomeTimelines(currentUser).then((homeTimelines) => {
                     setHomeTimelines(homeTimelines);
                     // Don't update local storage if the back-end returned an empty response.
                     // This could happen if we exceed Twitter's rate limit for /statuses/home_timeline
@@ -72,16 +75,15 @@ const App = () => {
 
     useEffect(() => {
         if (homeTimelines !== null) {
-            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines);
             // Calculate user with the the most links
-            const userWithMostLinks = homeTimelinesUtils.getUserWithMostLinks();
+            const sideBarUtils = new SidebarUtils(homeTimelines);
+            const userWithMostLinks = sideBarUtils.getUserWithMostLinks();
             setUserWithMostLinks(userWithMostLinks);
 
             // Get top domains that have been shared the most
-            const topDomains = homeTimelinesUtils.getTopDomains();
+            const topDomains = sideBarUtils.getTopDomains();
             setTopDomains(topDomains);
         }
-
     }, [homeTimelines])
 
     return (
@@ -91,24 +93,32 @@ const App = () => {
                 {
                     homeTimelines ? (
                         <Fragment>
-                            <Header setCurrentUser={setCurrentUser} setHomeTimelines={setHomeTimelines}/>
+                            <Header
+                                setCurrentUser={setCurrentUser}
+                                setHomeTimelines={setHomeTimelines}
+                            />
                             <Row className="mt-3">
                                 <Col sm={12} md={4} xl={4} className="m-3"/>
                                 <Col sm={12} md={7} xl={7} className="m-3 text-center">
-                                    <Search/>
+                                    <Search
+                                        setHashTagSearch={setHashTagSearch}
+                                        hashTagSearch={hashTagSearch}
+                                    />
                                 </Col>
                             </Row>
                             <Row>
                                 <Col sm={12} md={4} xl={4} className="m-3">
                                     <CardWrapper header="Top linker">
-                                        {userWithMostLinks}
+                                        <MDBIcon fab icon="twitter" className="pr-1"/> {userWithMostLinks}
                                     </CardWrapper>
                                     <CardWrapper header="Top Domains Shared">
                                         <DomainList topDomains={topDomains}/>
                                     </CardWrapper>
                                 </Col>
                                 <Col sm={12} md={6} xl={7} className="m-3">
-                                    <Home homeTimelines={homeTimelines}/>
+                                    <Home
+                                        homeTimelines={hashTagUtils.getFilteredHomeTimeLines()}
+                                    />
                                 </Col>
                             </Row>
                         </Fragment>

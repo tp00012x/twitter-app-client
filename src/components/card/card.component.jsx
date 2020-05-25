@@ -3,7 +3,7 @@ import {Card, Feed} from 'semantic-ui-react'
 
 const CardWrapper = ({children, header}) => {
     return (
-        <Card>
+        <Card style={{background: 'linear-gradient(150deg, #5858ac 0%, #77fffa 300%)'}}>
             <Card.Content>
                 <Card.Header>{header}</Card.Header>
             </Card.Content>
