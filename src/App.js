@@ -7,8 +7,7 @@ import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 import Home from "./components/home/home.component"
 import Header from "./components/header/header.component";
 import Search from './components/search/search.component';
-
-const baseURl = 'http://localhost:3001'
+import HomeTimelinesUtils from "./utils";
 
 const particlesOptions = {
     particles: {
@@ -49,36 +48,11 @@ const App = () => {
         }
     }, [])
 
-    const getHomeTimelines = async (user) => {
-        const response = await fetch(`${baseURl}/api/home_timeline`, {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: {'Content-Type': 'application/json'},
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer',
-            body: JSON.stringify(user)
-        });
-        return response.json();
-    };
-
-    const shouldGetHomeTimelines = () => {
-        // Refresh Timeline every minute
-        const lastCachedTimeStamp = new Date(JSON.parse(localStorage.getItem('cachedTimestamp')));
-        const tenMinutesAgo = new Date(Date.now() - 60 * 1000);
-        const isCacheExpired = lastCachedTimeStamp < tenMinutesAgo;
-
-        // Refresh homeTimeline if not cached
-        const homeTimelinesExists = homeTimelines?.length > 0;
-
-        return isCacheExpired || !homeTimelinesExists;
-    }
-
     useEffect(() => {
         if (currentUser !== null) {
-            if (shouldGetHomeTimelines()) {
-                getHomeTimelines(currentUser).then((homeTimelines) => {
+            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines)
+            if (homeTimelinesUtils.shouldGetHomeTimelines()) {
+                homeTimelinesUtils.fetchHomeTimelines(currentUser).then((homeTimelines) => {
                     setHomeTimelines(homeTimelines);
                     // Don't update local storage if the back-end returned an empty response.
                     // This could happen if we exceed Twitter's rate limit for /statuses/home_timeline
