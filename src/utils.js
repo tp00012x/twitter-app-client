@@ -84,7 +84,7 @@ export class SidebarUtils {
     }
 }
 
-export class HashTagUtils {
+export class FilterUtils {
     constructor(homeTimelines, hashTagSearch) {
         this.homeTimelines = homeTimelines
         this.hashTagSearch = hashTagSearch

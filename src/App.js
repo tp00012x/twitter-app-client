@@ -9,7 +9,7 @@ import Header from "./components/header/header.component";
 import Search from './components/search/search.component';
 import DomainList from "./components/list/list.component";
 import CardWrapper from "./components/card/card.component";
-import {APIUtils, HashTagUtils, SidebarUtils} from "./utils";
+import {APIUtils, FilterUtils, SidebarUtils} from "./utils";
 import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 
 const particlesOptions = {
@@ -30,7 +30,7 @@ const App = () => {
     const [topDomains, setTopDomains] = useState([]);
     const [homeTimelines, setHomeTimelines] = useState(JSON.parse(localStorage.getItem('homeTimelines')));
     const [hashTagSearch, setHashTagSearch] = useState('');
-    const hashTagUtils = new HashTagUtils(homeTimelines, hashTagSearch);
+    const filterUtils = new FilterUtils(homeTimelines, hashTagSearch);
 
     useEffect(() => {
         const unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
@@ -117,7 +117,7 @@ const App = () => {
                                 </Col>
                                 <Col sm={12} md={6} xl={7} className="m-3">
                                     <Home
-                                        homeTimelines={hashTagUtils.getFilteredHomeTimeLines()}
+                                        homeTimelines={filterUtils.getFilteredHomeTimeLines()}
                                     />
                                 </Col>
                             </Row>
