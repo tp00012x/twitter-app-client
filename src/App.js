@@ -2,12 +2,14 @@ import React, {Fragment, useEffect, useState} from "react";
 import "./App.scss";
 import Particles from 'react-particles-js';
 import {Col, Container, Row} from 'react-bootstrap';
+import HomeTimelinesUtils from "./utils";
 import SignIn from "./components/sign-in/sign-in.component";
-import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 import Home from "./components/home/home.component"
 import Header from "./components/header/header.component";
 import Search from './components/search/search.component';
-import HomeTimelinesUtils from "./utils";
+import DomainList from "./components/list/list.component";
+import CardWrapper from "./components/card/card.component";
+import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 
 const particlesOptions = {
     particles: {
@@ -23,6 +25,8 @@ const particlesOptions = {
 
 const App = () => {
     const [currentUser, setCurrentUser] = useState(null);
+    const [userWithMostLinks, setUserWithMostLinks] = useState(null);
+    const [topDomains, setTopDomains] = useState([]);
     const [homeTimelines, setHomeTimelines] = useState(JSON.parse(localStorage.getItem('homeTimelines')));
 
     useEffect(() => {
@@ -50,7 +54,7 @@ const App = () => {
 
     useEffect(() => {
         if (currentUser !== null) {
-            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines)
+            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines);
             if (homeTimelinesUtils.shouldGetHomeTimelines()) {
                 homeTimelinesUtils.fetchHomeTimelines(currentUser).then((homeTimelines) => {
                     setHomeTimelines(homeTimelines);
@@ -65,6 +69,20 @@ const App = () => {
             }
         }
     }, [currentUser])
+
+    useEffect(() => {
+        if (homeTimelines !== null) {
+            const homeTimelinesUtils = new HomeTimelinesUtils(homeTimelines);
+            // Calculate user with the the most links
+            const userWithMostLinks = homeTimelinesUtils.getUserWithMostLinks();
+            setUserWithMostLinks(userWithMostLinks);
+
+            // Get top domains that have been shared the most
+            const topDomains = homeTimelinesUtils.getTopDomains();
+            setTopDomains(topDomains);
+        }
+
+    }, [homeTimelines])
 
     return (
         <div className="App">
@@ -82,9 +100,14 @@ const App = () => {
                             </Row>
                             <Row>
                                 <Col sm={12} md={4} xl={4} className="m-3">
-                                    Anthony is a Sexy Daddy
+                                    <CardWrapper header="Top linker">
+                                        {userWithMostLinks}
+                                    </CardWrapper>
+                                    <CardWrapper header="Top Domains Shared">
+                                        <DomainList topDomains={topDomains}/>
+                                    </CardWrapper>
                                 </Col>
-                                <Col sm={12} md={7} xl={7} className="m-3">
+                                <Col sm={12} md={6} xl={7} className="m-3">
                                     <Home homeTimelines={homeTimelines}/>
                                 </Col>
                             </Row>
