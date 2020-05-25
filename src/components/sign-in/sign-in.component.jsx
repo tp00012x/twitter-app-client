@@ -1,10 +1,9 @@
 import React from "react";
 import "./sign-in.styles.scss";
-import CustomButton from "../custom-button/custom-button.component";
-import {auth, provider, createUserProfileDocument} from "../../firebase/firebase.utils";
+import {MDBBtn, MDBIcon} from 'mdbreact';
+import {auth, createUserProfileDocument, provider} from "../../firebase/firebase.utils";
 
 const SignIn = () => {
-
     const signInWithTwitter = async () => {
         const result = await auth.signInWithPopup(provider);
         const userAuth = result.user;
@@ -17,12 +16,11 @@ const SignIn = () => {
 
     return (
         <div className="sign-in">
-            <CustomButton onClick={signInWithTwitter} isGoogleSignIn>
-                Sign With Twitter
-            </CustomButton>
+            <MDBBtn social="tw" onClick={signInWithTwitter}>
+                <MDBIcon fab icon="twitter" className="pr-1"/> Twitter
+            </MDBBtn>
         </div>
     );
-
 }
 
 export default SignIn;

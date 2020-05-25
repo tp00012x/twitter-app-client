@@ -1,7 +1,6 @@
 import React from "react";
-import "./header.styles.scss";
+import {Navbar, Button} from 'react-bootstrap';
 import {auth} from '../../firebase/firebase.utils';
-import CustomButton from "../custom-button/custom-button.component";
 
 const Header = ({setCurrentUser, setHomeTimelines}) => {
     const onClickHandle = async () => {
@@ -13,11 +12,17 @@ const Header = ({setCurrentUser, setHomeTimelines}) => {
     }
 
     return (
-        <div className="header">
-            <CustomButton className="option" onClick={onClickHandle}>
-                SIGN OUT
-            </CustomButton>
-        </div>
+        <Navbar>
+            <Navbar.Brand>Twitter HomeTimelines</Navbar.Brand>
+            <Navbar.Toggle/>
+            <Navbar.Collapse className="justify-content-end">
+                <Navbar.Text>
+                    <Button variant="dark" onClick={onClickHandle}>
+                        Sign out
+                    </Button>
+                </Navbar.Text>
+            </Navbar.Collapse>
+        </Navbar>
     )
 };
 

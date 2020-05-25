@@ -1,32 +1,36 @@
 import React, {Fragment, useState, useEffect} from "react";
-import "./App.css";
+import "./App.scss";
+import Particles from 'react-particles-js';
+import {Container, Row, Col, InputGroup, FormControl} from 'react-bootstrap';
 import SignIn from "./components/sign-in/sign-in.component";
 import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 import Home from "./components/home/home.component"
 import Header from "./components/header/header.component";
-import {css} from "@emotion/core";
-import PacmanLoader from "react-spinners/PacmanLoader";
-
-const override = css`
-  display: block;
-  margin: 22.5% auto;
-  border-color: black;
-`;
 
 const baseURl = 'http://localhost:3001'
+
+const particlesOptions = {
+    particles: {
+        number: {
+            value: 40,
+            density: {
+                enable: true,
+                value_area: 1000
+            }
+        }
+    }
+}
 
 const App = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [homeTimelines, setHomeTimelines] = useState(JSON.parse(localStorage.getItem('homeTimelines')));
-    const [isSignIn, setIsSignIn] = useState(false);
 
     useEffect(() => {
-        console.log('component did mount')
         const unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
             if (userAuth) {
                 const userRef = await getUserProfileDocument(userAuth);
+
                 // Keeping up to date the state currentUser
-                console.log('updating user')
                 userRef.onSnapshot(snapshot => {
                     setCurrentUser({
                             authId: snapshot.id,
@@ -45,8 +49,6 @@ const App = () => {
     }, [])
 
     const getHomeTimelines = async (user) => {
-        console.log('Getting home timelines')
-
         const response = await fetch(`${baseURl}/api/home_timeline`, {
             method: 'POST',
             mode: 'cors',
@@ -57,7 +59,6 @@ const App = () => {
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(user)
         });
-        console.log('Got HomeTimelines')
         return response.json()
     };
 
@@ -75,8 +76,6 @@ const App = () => {
 
     useEffect(() => {
         if (currentUser !== null) {
-            console.log('user updated')
-
             if (shouldRefreshHomeTimelines()) {
                 getHomeTimelines(currentUser).then((homeTimelines) => {
                     setHomeTimelines(homeTimelines)
@@ -89,18 +88,43 @@ const App = () => {
     }, [currentUser])
 
     return (
-        <Fragment>
-            {
-                homeTimelines ? (
-                    <Fragment>
-                        <Header setCurrentUser={setCurrentUser} setHomeTimelines={setHomeTimelines}/>
-                        <Home homeTimelines={homeTimelines}/>
-                    </Fragment>
-                ) : (
-                    <SignIn/>
-                )
-            }
-        </Fragment>
+        <div className="App">
+            <Container>
+                <Particles className='particles' params={particlesOptions}/>
+                {
+                    homeTimelines ? (
+                        <Fragment>
+                            <Header setCurrentUser={setCurrentUser} setHomeTimelines={setHomeTimelines}/>
+                            <Row className="mt-3">
+                                <Col sm={12} md={4} xl={4} className="m-3"/>
+                                <Col sm={12} md={7} xl={7} className="m-3 text-center">
+                                    <InputGroup className="mb-3">
+                                        <InputGroup.Prepend>
+                                            <InputGroup.Text id="basic-addon1">#</InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <FormControl
+                                            placeholder="Username"
+                                            aria-label="Username"
+                                            aria-describedby="basic-addon1"
+                                        />
+                                    </InputGroup>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col sm={12} md={4} xl={4} className="m-3">
+                                    Anthony is a Sexy Daddy
+                                </Col>
+                                <Col sm={12} md={7} xl={7} className="m-3">
+                                    <Home homeTimelines={homeTimelines}/>
+                                </Col>
+                            </Row>
+                        </Fragment>
+                    ) : (
+                        <SignIn/>
+                    )
+                }
+            </Container>
+        </div>
     )
 }
 

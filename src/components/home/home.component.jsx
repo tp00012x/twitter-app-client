@@ -3,7 +3,6 @@ import {Feed} from 'semantic-ui-react'
 import "./home.styles.scss";
 
 const Home = ({homeTimelines}) => {
-    console.log('Home rendered')
     return (
         <Fragment>
             {
@@ -24,7 +23,8 @@ const Home = ({homeTimelines}) => {
                                     </Feed.Extra>
                                 </Feed.Content>
                             </Feed.Event>
-                        </Feed>)
+                        </Feed>
+                    )
                 })
             }
         </Fragment>
