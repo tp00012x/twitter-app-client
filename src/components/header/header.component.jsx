@@ -13,7 +13,7 @@ const Header = ({setCurrentUser, setHomeTimelines}) => {
 
     return (
         <Navbar>
-            <Navbar.Brand>Twitter HomeTimelines</Navbar.Brand>
+            <Navbar.Brand>Home Timelines</Navbar.Brand>
             <Navbar.Toggle/>
             <Navbar.Collapse className="justify-content-end">
                 <Navbar.Text>

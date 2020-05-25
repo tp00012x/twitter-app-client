@@ -1,11 +1,12 @@
-import React, {Fragment, useState, useEffect} from "react";
+import React, {Fragment, useEffect, useState} from "react";
 import "./App.scss";
 import Particles from 'react-particles-js';
-import {Container, Row, Col, InputGroup, FormControl} from 'react-bootstrap';
+import {Col, Container, Row} from 'react-bootstrap';
 import SignIn from "./components/sign-in/sign-in.component";
 import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
 import Home from "./components/home/home.component"
 import Header from "./components/header/header.component";
+import Search from './components/search/search.component';
 
 const baseURl = 'http://localhost:3001'
 
@@ -59,29 +60,33 @@ const App = () => {
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(user)
         });
-        return response.json()
+        return response.json();
     };
 
-    const shouldRefreshHomeTimelines = () => {
-        // Refresh Timeline every 5 minutes
+    const shouldGetHomeTimelines = () => {
+        // Refresh Timeline every minute
         const lastCachedTimeStamp = new Date(JSON.parse(localStorage.getItem('cachedTimestamp')));
-        const tenMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        const isCacheExpired = lastCachedTimeStamp < tenMinutesAgo
+        const tenMinutesAgo = new Date(Date.now() - 60 * 1000);
+        const isCacheExpired = lastCachedTimeStamp < tenMinutesAgo;
 
         // Refresh homeTimeline if not cached
-        const homeTimelinesExists = homeTimelines?.length > 0
+        const homeTimelinesExists = homeTimelines?.length > 0;
 
         return isCacheExpired || !homeTimelinesExists;
     }
 
     useEffect(() => {
         if (currentUser !== null) {
-            if (shouldRefreshHomeTimelines()) {
+            if (shouldGetHomeTimelines()) {
                 getHomeTimelines(currentUser).then((homeTimelines) => {
-                    setHomeTimelines(homeTimelines)
-                    console.log('saving to local storage', homeTimelines)
-                    localStorage.setItem('homeTimelines', JSON.stringify(homeTimelines));
-                    localStorage.setItem('cachedTimestamp', JSON.stringify(new Date()));
+                    setHomeTimelines(homeTimelines);
+                    // Don't update local storage if the back-end returned an empty response.
+                    // This could happen if we exceed Twitter's rate limit for /statuses/home_timeline
+                    if (homeTimelines.length !== 0) {
+                        console.log('saving to local storage', homeTimelines);
+                        localStorage.setItem('homeTimelines', JSON.stringify(homeTimelines));
+                        localStorage.setItem('cachedTimestamp', JSON.stringify(new Date()));
+                    }
                 });
             }
         }
@@ -98,16 +103,7 @@ const App = () => {
                             <Row className="mt-3">
                                 <Col sm={12} md={4} xl={4} className="m-3"/>
                                 <Col sm={12} md={7} xl={7} className="m-3 text-center">
-                                    <InputGroup className="mb-3">
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text id="basic-addon1">#</InputGroup.Text>
-                                        </InputGroup.Prepend>
-                                        <FormControl
-                                            placeholder="Username"
-                                            aria-label="Username"
-                                            aria-describedby="basic-addon1"
-                                        />
-                                    </InputGroup>
+                                    <Search/>
                                 </Col>
                             </Row>
                             <Row>
