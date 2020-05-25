@@ -1,4 +1,4 @@
-import React, {Fragment} from "react";
+import React, {Fragment, useState, useEffect} from "react";
 import "./App.css";
 import SignIn from "./components/sign-in/sign-in.component";
 import {auth, getUserProfileDocument} from "./firebase/firebase.utils";
@@ -15,98 +15,93 @@ const override = css`
 
 const baseURl = 'http://localhost:3001'
 
-export default class App extends React.Component {
+const App = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [homeTimelines, setHomeTimelines] = useState(JSON.parse(localStorage.getItem('homeTimelines')));
+    const [isSignIn, setIsSignIn] = useState(false);
 
-    state = {
-        currentUser: null,
-        homeTimelines: null,
-        loading: true
-    }
-
-    unsubscribeFromAuth = null;
-
-    componentDidMount() {
-        this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+    useEffect(() => {
+        console.log('component did mount')
+        const unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
             if (userAuth) {
                 const userRef = await getUserProfileDocument(userAuth);
                 // Keeping up to date the state currentUser
+                console.log('updating user')
                 userRef.onSnapshot(snapshot => {
-                    this.setState({
-                        currentUser: {
+                    setCurrentUser({
                             authId: snapshot.id,
                             ...snapshot.data()
-                        },
-                        loading: false
-                    });
+                        }
+                    );
                 });
             } else {
-                this.setState({currentUser: userAuth})
+                setCurrentUser(userAuth)
             }
         });
-    }
 
-    componentWillUnmount() {
-        this.unsubscribeFromAuth();
-    }
+        return () => {
+            unsubscribeFromAuth();
+        }
+    }, [])
 
-    saveHomeTimelines = async (user) => {
+    const getHomeTimelines = async (user) => {
+        console.log('Getting home timelines')
+
         const response = await fetch(`${baseURl}/api/home_timeline`, {
             method: 'POST',
             mode: 'cors',
             cache: 'no-cache',
             credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: {'Content-Type': 'application/json'},
             redirect: 'follow',
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(user)
         });
+        console.log('Got HomeTimelines')
         return response.json()
+    };
+
+    const shouldRefreshHomeTimelines = () => {
+        // Refresh Timeline every 5 minutes
+        const lastCachedTimeStamp = new Date(JSON.parse(localStorage.getItem('cachedTimestamp')));
+        const tenMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const isCacheExpired = lastCachedTimeStamp < tenMinutesAgo
+
+        // Refresh homeTimeline if not cached
+        const homeTimelinesExists = homeTimelines?.length > 0
+
+        return isCacheExpired || !homeTimelinesExists;
     }
 
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return !!(nextState.currentUser && nextState.currentUser.createdAt) || !nextState.currentUser;
-    }
+    useEffect(() => {
+        if (currentUser !== null) {
+            console.log('user updated')
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        const {currentUser} = this.state;
-        if (prevState.currentUser !== currentUser && currentUser !== null) {
-            this.saveHomeTimelines(currentUser).then((homeTimelines) => {
-                this.setState({homeTimelines})
-            })
+            if (shouldRefreshHomeTimelines()) {
+                getHomeTimelines(currentUser).then((homeTimelines) => {
+                    setHomeTimelines(homeTimelines)
+                    console.log('saving to local storage', homeTimelines)
+                    localStorage.setItem('homeTimelines', JSON.stringify(homeTimelines));
+                    localStorage.setItem('cachedTimestamp', JSON.stringify(new Date()));
+                });
+            }
         }
-        if (prevState.currentUser !== currentUser && currentUser === null) {
-            this.setState({homeStatuses: null})
-        }
-    }
+    }, [currentUser])
 
-    render() {
-        const {currentUser, homeTimelines, loading} = this.state;
-        console.log(homeTimelines);
-
-        return (
-            <div>
-                {
-                    currentUser ? (
-                        <Fragment>
-                            <Header currentUser={currentUser}/>
-                            <Home homeStatuses={homeTimelines}/>
-                        </Fragment>
-
-                    ) : (
-                        loading ?
-                            <PacmanLoader
-                                css={override}
-                                size={25}
-                                color={"black"}
-                                loading={loading}
-                            /> :
-                            <SignIn/>
-                    )
-                }
-            </div>
-        );
-    }
+    return (
+        <Fragment>
+            {
+                homeTimelines ? (
+                    <Fragment>
+                        <Header setCurrentUser={setCurrentUser} setHomeTimelines={setHomeTimelines}/>
+                        <Home homeTimelines={homeTimelines}/>
+                    </Fragment>
+                ) : (
+                    <SignIn/>
+                )
+            }
+        </Fragment>
+    )
 }
 
+export default App;

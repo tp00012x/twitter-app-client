@@ -2,12 +2,12 @@ import React, {Fragment} from "react";
 import {Feed} from 'semantic-ui-react'
 import "./home.styles.scss";
 
-const Home = ({homeStatuses}) => {
-
+const Home = ({homeTimelines}) => {
+    console.log('Home rendered')
     return (
         <Fragment>
-            {homeStatuses ?
-                homeStatuses.map(({text, createdAt, user}, index) => {
+            {
+                homeTimelines.map(({text, created_at, user}, index) => {
                     return (
                         <Feed key={index}>
                             <Feed.Event>
@@ -17,7 +17,7 @@ const Home = ({homeStatuses}) => {
                                 <Feed.Content>
                                     <Feed.Summary>
                                         <Feed.User>{user.screen_name}</Feed.User> tweeted
-                                        <Feed.Date>{new Date(createdAt).toLocaleString()}</Feed.Date>
+                                        <Feed.Date>{new Date(created_at).toLocaleString()}</Feed.Date>
                                     </Feed.Summary>
                                     <Feed.Extra text>
                                         {text}
@@ -26,7 +26,6 @@ const Home = ({homeStatuses}) => {
                             </Feed.Event>
                         </Feed>)
                 })
-                : null
             }
         </Fragment>
     )
