@@ -1,6 +1,7 @@
 import {parseDomain, fromUrl} from "parse-domain";
+import axios from 'axios';
 
-const baseURl = 'https://link-twitter-api.herokuapp.com'
+const baseURl = 'http://localhost:3001'
 
 export class APIUtils {
     constructor(homeTimelines) {
@@ -20,17 +21,8 @@ export class APIUtils {
     }
 
     async fetchHomeTimelines(user) {
-        const response = await fetch(`${baseURl}/api/home_timeline`, {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: {'Content-Type': 'application/json'},
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer',
-            body: JSON.stringify(user)
-        });
-        return response.json();
+        const response = await axios.post(`${baseURl}/api/home_timeline`, user);
+        return response.data;
     };
 }
 
