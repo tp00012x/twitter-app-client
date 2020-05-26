@@ -1,6 +1,6 @@
 import {parseDomain, fromUrl} from "parse-domain";
 
-const baseURl = 'http://localhost:3001'
+const baseURl = 'https://link-twitter-api.herokuapp.com'
 
 export class APIUtils {
     constructor(homeTimelines) {
